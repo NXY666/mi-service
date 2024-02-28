@@ -1,7 +1,7 @@
 {
 	"name": "mi-service",
 	"version": "1.0.0",
-	"description": "",
+	"description": "由 Mi Service 项目使用 GPT-4 翻译而来，有少许修改。未经测试，没有 micli.js ，没有文档。",
 	"main": "index.js",
 	"type": "module",
 	"scripts": {
