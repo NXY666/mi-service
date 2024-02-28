@@ -1,5 +1,5 @@
 {
-	"name": "mi-service",
+	"name": "@greatnxy/mi-service",
 	"version": "1.0.0",
 	"description": "由 Mi Service 项目使用 GPT-4 翻译而来，有少许修改。未经测试，没有 micli.js ，没有文档。",
 	"main": "index.js",
@@ -13,6 +13,6 @@
 		"open": "^10.0.4"
 	},
 	"devDependencies": {
-		"@types/json-bigint": "^1.0.4"
+		"@types/json-bigint": "latest"
 	}
 }
