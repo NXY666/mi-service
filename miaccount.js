@@ -126,6 +126,7 @@ export class MiAccount {
 	}
 
 	async miRequest(sid, url, data, headers, relogin = true) {
+		let resp;
 		if ((this.token && this.token[sid]) || await this.login(sid)) {  // Ensure login
 			const cookies = {'userId': this.token.userId, 'serviceToken': this.token[sid][1]};
 			headers = {
@@ -148,7 +149,7 @@ export class MiAccount {
 				withCredentials: true
 			});
 			let status = response.status;
-			let resp = response.data;
+			resp = response.data;
 			if (status === 200) {
 				const code = resp.code;
 				if (code === 0) {
