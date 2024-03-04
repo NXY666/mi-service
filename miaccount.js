@@ -64,7 +64,7 @@ export class MiAccount {
 				}
 				resp = await this._serviceLogin('serviceLoginAuth2', formData);
 				if (resp.code !== 0) {
-					throw new Error(resp);
+					throw new Error(resp.desc);
 				}
 			}
 
@@ -125,14 +125,35 @@ export class MiAccount {
 		return serviceToken;
 	}
 
-	async miRequest(sid, url, data, headers, relogin = true) {
-		let resp;
+	/**
+	 * 服务请求
+	 *
+	 * @param sid {string} - 服务 ID
+	 * @param url {string} - URL
+	 * @param data {object} - 请求数据
+	 * @param headers {object} - 请求头
+	 * @param rawReps {boolean} - 返回原始响应
+	 * @param relogin {boolean} - 遇到401重新登录
+	 * @return {Promise<any>} - 响应数据
+	 */
+	async miRequest(
+		sid, {url, data = null, headers = {}},
+		{rawReps = false, relogin = true} = {rawReps: false, relogin: true}
+	) {
+		let errorMsg = 'Unknown error';
 		if ((this.token && this.token[sid]) || await this.login(sid)) {  // Ensure login
-			const cookies = {'userId': this.token.userId, 'serviceToken': this.token[sid][1]};
+			const cookies = {
+				'userId': this.token.userId,
+				'serviceToken': this.token[sid][1],
+				...headers['Cookie'],
+				...headers['cookie'],
+				...headers['cookies'],
+				...headers['Cookies']
+			};
 			headers = {
 				...headers,
 				'Cookie': Object.keys(cookies).map(key => `${key}=${cookies[key]}`).join('; ')
-			}
+			};
 			const content = typeof data === 'function' ? data(this.token, cookies) : data;
 			const method = data ? 'POST' : 'GET';
 
@@ -148,25 +169,34 @@ export class MiAccount {
 				data: formData,
 				withCredentials: true
 			});
-			let status = response.status;
-			resp = response.data;
-			if (status === 200) {
-				const code = resp.code;
-				if (code === 0) {
-					return resp;
+			let {status, data: body} = response;
+
+			const {code, message} = body;
+
+			switch (status) {
+				case 200: {
+					if (code === 0) {
+						return rawReps ? response : body;
+					}
+					if (message?.toLowerCase().includes('auth')) {
+						status = 401; // Unauthorized
+					}
+					errorMsg = `${code} ${message}`;
+					break;
 				}
-				if (resp.message?.toLowerCase().includes('auth')) {
-					status = 401; // Unauthorized
+				case 401: {
+					if (relogin) {
+						console.warn(`Auth error on request ${url}(${code} ${message}), relogin...`);
+						this.token = null; // Auth error, reset login
+						return await this.miRequest(sid, {url, data, headers}, {rawReps, relogin: false});
+					}
+					errorMsg = message ?? code ?? status ?? errorMsg;
+					break;
 				}
-			} else {
-				resp = await response.data;
 			}
-			if (status === 401 && relogin) {
-				console.warn(`Auth error on request ${url} ${resp}, relogin...`);
-				this.token = null; // Auth error, reset login
-				return await this.miRequest(sid, url, data, headers, false);
-			}
+		} else {
+			errorMsg = 'Login failed';
 		}
-		throw new Error(`Error ${url}: ${resp}`);
+		throw new Error(`MiRequest failed: ${errorMsg} ${url}`);
 	}
 }

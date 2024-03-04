@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import open from 'open';
-import { promisify } from 'util';
+import {promisify} from 'util';
 import zlib from 'zlib';
 
 // const REGIONS = ['cn', 'de', 'i2', 'ru', 'sg', 'us'];
@@ -50,9 +50,9 @@ export class MiIOService {
 			'x-xiaomi-protocal-flag-cli': 'PROTOCAL-HTTP2'
 		};
 
-		const resp = await this.account.miRequest('xiaomiio', this.server + uri, prepareData, headers);
+		const resp = await this.account.miRequest('xiaomiio', {url: this.server + uri, data: prepareData, headers});
 		if (!resp.result) {
-			throw new Error(`Error ${uri}: ${JSON.stringify(resp)}`);
+			throw new Error(`MiIORequest Failed: ${JSON.stringify(resp)} ${uri}`);
 		}
 		return resp.result;
 	}

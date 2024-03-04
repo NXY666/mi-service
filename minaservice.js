@@ -15,7 +15,7 @@ export class MiNAService {
 		const headers = {
 			'User-Agent': 'MiHome/6.0.103 (com.xiaomi.mihome; build:6.0.103.1; iOS 14.4.0) Alamofire/6.0.103 MICO/iOSApp/appStore/6.0.103'
 		};
-		return await this.account.miRequest('micoapi', 'https://api2.mina.mi.com' + uri, data, headers);
+		return await this.account.miRequest('micoapi', {url: 'https://api2.mina.mi.com' + uri, data, headers});
 	}
 
 	async deviceList(master = 0) {
