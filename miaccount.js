@@ -150,10 +150,6 @@ export class MiAccount {
 				...headers['cookies'],
 				...headers['Cookies']
 			};
-			headers = {
-				...headers,
-				'Cookie': Object.keys(cookies).map(key => `${key}=${cookies[key]}`).join('; ')
-			};
 			const content = typeof data === 'function' ? data(this.token, cookies) : data;
 			const method = data ? 'POST' : 'GET';
 
@@ -165,10 +161,15 @@ export class MiAccount {
 			}
 
 			const response = await this.session({
-				method, url, headers, cookies,
+				method, url, headers: {
+					...headers,
+					'Cookie': Object.keys(cookies).map(key => `${key}=${cookies[key]}`).join('; ')
+				},
 				data: formData,
 				withCredentials: true
-			});
+			}).catch(e => {
+				return e.response;
+			})
 			let {status, data: body} = response;
 
 			const {code, message} = body;
@@ -192,6 +193,9 @@ export class MiAccount {
 					}
 					errorMsg = message ?? code ?? status ?? errorMsg;
 					break;
+				}
+				default: {
+					errorMsg = `${status} ${message}`;
 				}
 			}
 		} else {
