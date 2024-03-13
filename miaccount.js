@@ -168,8 +168,8 @@ export class MiAccount {
 				data: formData,
 				withCredentials: true
 			}).catch(e => {
-				return e.response;
-			})
+				return e.response ?? {status: -1, data: {code: -1, message: e.message}};
+			});
 			let {status, data: body} = response;
 
 			const {code, message} = body;
